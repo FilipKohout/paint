@@ -5,12 +5,26 @@ import 'package:paint/models/color.dart';
 import 'package:paint/models/pixel.dart';
 import 'package:paint/models/vector2.dart';
 
+enum LineStyle { solid, dashed, dotted }
+
 class Line implements Renderable {
   Vector2 start;
   Vector2 end;
   RGB color;
+  LineStyle style;
 
-  Line(this.start, this.end, this.color);
+  Line(this.start, this.end, this.color, this.style);
+
+  bool _canDraw(int index) {
+    switch(style) {
+      case (LineStyle.dashed):
+        return (index ~/ 5) % 2 == 0;
+      case (LineStyle.dotted):
+        return index % 5 == 0;
+      default:
+        return true;
+    }
+  }
 
   List<Pixel> pixelate() {
     List<Pixel> pixels = [];
@@ -25,7 +39,7 @@ class Line implements Renderable {
       Vector2 p2 = start.y < end.y ? end : start;
 
       for (int y = p1.y; y <= p2.y; y++) {
-        pixels.add(Pixel(Vector2(start.x, y), color));
+        if (_canDraw(y - p1.y)) { pixels.add(Pixel(Vector2(start.x, y), color)); }
       }
       return pixels;
     }
@@ -39,7 +53,10 @@ class Line implements Renderable {
 
       for (int x = p1.x; x <= p2.x; x++) {
         double y = a * x + b;
-        pixels.add(Pixel(Vector2(x, y.toInt()), color));
+
+        if (_canDraw(x - p1.x)) {
+          pixels.add(Pixel(Vector2(x, y.toInt()), color));
+        }
       }
     } else {
       Vector2 p1 = start.y < end.y ? start : end;
@@ -47,7 +64,10 @@ class Line implements Renderable {
 
       for (int y = p1.y; y <= p2.y; y++) {
         double x = (y - b) / a;
-        pixels.add(Pixel(Vector2(x.toInt(), y), color));
+
+        if (_canDraw(y - p1.y)) {
+          pixels.add(Pixel(Vector2(x.toInt(), y), color));
+        }
       }
     }
 

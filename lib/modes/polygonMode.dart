@@ -1,4 +1,6 @@
+import 'package:flutter/services.dart';
 import 'package:paint/interfaces/renderable.dart';
+import 'package:paint/models/polygon.dart';
 import 'package:paint/models/vector2.dart';
 
 import '../interfaces/mode.dart';
@@ -6,28 +8,33 @@ import '../models/color.dart';
 import '../models/line.dart';
 
 class PolygonMode implements Mode {
-  late Line line;
+  Polygon? polygon;
 
   @override
-  void onPanUpdate(Vector2 pos) {
-    line.end = pos;
+  void update(Vector2 pos) {
+    polygon!.updateLastPoint(pos);
   }
 
   @override
-  Renderable? onTapDown(Vector2 pos) {
-    if (line.start != line.end) {
-      line = Line(pos, pos, RGB(0, 0, 0));
+  Renderable? start(Vector2 pos) {
+    if (polygon != null) {return null;}
 
-      return line;
-    }
-    else {
-      line.end = pos;
-      return null;
-    }
+    polygon = Polygon(pos, RGB(0, 0, 0), LineStyle.solid);
+    return polygon;
   }
 
   @override
-  void onTapUp(Vector2 pos) {
+  void end(Vector2 pos) {
+    polygon!.addPoint(pos);
+  }
 
+  @override
+  void onKey(event) {
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.escape:
+        polygon?.removeLastPoint();
+        polygon = null;
+        break;
+    }
   }
 }
