@@ -1,16 +1,20 @@
-import 'dart:ffi';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:paint/interfaces/renderize.dart';
+import 'package:paint/interfaces/mode.dart';
+import 'package:paint/interfaces/renderable.dart';
 import 'package:paint/models/pixel.dart';
+import 'package:paint/models/vector2.dart';
+import 'package:paint/modes/polygonMode.dart';
+
+import 'modes/lineMode.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const App());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class App extends StatelessWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,34 +38,47 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final int sirka = 800;
-  final int vyska = 600;
+  final int width = 800;
+  final int height = 600;
 
   late Uint8List pixels;
   late List<Renderable> objects = [];
+  late Mode mode = LineMode();
 
   ui.Image? renderImage;
 
   @override
   void initState() {
     super.initState();
-    pixels = Uint8List(sirka * vyska * 4);
-    _clearCanvas();
+
+    pixels = Uint8List(width * height * 4);
+    _fillCanvasWhite();
   }
 
-  void _clearCanvas() {
+  void _fillCanvasWhite() {
     for (int i = 0; i < pixels.length; i += 4) {
-      pixels[i] = 255;
-      pixels[i + 1] = 255;
-      pixels[i + 2] = 255;
-      pixels[i + 3] = 255;
+      pixels[i] = 255;     // R
+      pixels[i + 1] = 255; // G
+      pixels[i + 2] = 255; // B
+      pixels[i + 3] = 255; // Alpha
     }
+  }
+
+  void _redrawCanvas() {
+    _fillCanvasWhite();
+
+    for (var object in objects) {
+      for (Pixel p in object.pixelate()) {
+        _setPixel(p);
+      }
+    }
+
     _updateCanvas();
   }
 
-  void setPixel(Pixel p) {
-    if (p.position.x >= 0 && p.position.x < sirka && p.position.y >= 0 && p.position.y < vyska) {
-      int index = (p.position.y * sirka + p.position.x) * 4;
+  void _setPixel(Pixel p) {
+    if (p.position.x >= 0 && p.position.x < width && p.position.y >= 0 && p.position.y < height) {
+      int index = (p.position.y * width + p.position.x) * 4;
       pixels[index] = p.color.r;
       pixels[index + 1] = p.color.g;
       pixels[index + 2] = p.color.b;
@@ -70,7 +87,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<void> _updateCanvas() async {
-    ui.decodeImageFromPixels(pixels, sirka, vyska, ui.PixelFormat.rgba8888, (ui.Image img,) {
+    ui.decodeImageFromPixels(pixels, width, height, ui.PixelFormat.rgba8888, (ui.Image img) {
       setState(() {
         renderImage = img;
       });
@@ -83,18 +100,25 @@ class _MainPageState extends State<MainPage> {
       body: Column(
         children: [
           Container(
-            height: 80,
+            height: 50,
             color: Colors.grey[200],
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   IconButton(
-                    icon: const Icon(Icons.linear_scale_rounded, size: 30),
-                    tooltip: 'Štětec',
-                    onPressed: () {},
+                    icon: const Icon(Icons.linear_scale, size: 20),
+                    tooltip: 'Line',
+                    isSelected: mode is LineMode,
+                    onPressed: () => setState(() => mode = LineMode()),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.polyline, size: 20),
+                    tooltip: 'Polygon',
+                    isSelected: mode is PolygonMode,
+                    onPressed: () => setState(() => mode = PolygonMode()),
                   ),
                 ],
               ),
@@ -105,16 +129,42 @@ class _MainPageState extends State<MainPage> {
             child: Center(
               child: GestureDetector(
                 onPanDown: (data) {
+                  Renderable? obj = mode.onTapDown(
+                    Vector2(
+                      data.localPosition.dx.toInt(),
+                      data.localPosition.dy.toInt(),
+                    ),
+                  );
 
-                  _updateCanvas();
+                  if (obj != null) {
+                    objects.add(obj);
+                  }
+
+                  _redrawCanvas();
                 },
                 onPanUpdate: (data) {
+                  mode.onPanUpdate(
+                    Vector2(
+                      data.localPosition.dx.toInt(),
+                      data.localPosition.dy.toInt(),
+                    ),
+                  );
 
-                  _updateCanvas();
+                  _redrawCanvas();
+                },
+                onTapUp: (data) {
+                  mode.onTapUp(
+                    Vector2(
+                      data.localPosition.dx.toInt(),
+                      data.localPosition.dy.toInt(),
+                    ),
+                  );
+
+                  _redrawCanvas();
                 },
                 child: Container(
-                  width: sirka.toDouble(),
-                  height: vyska.toDouble(),
+                  width: width.toDouble(),
+                  height: height.toDouble(),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.black, width: 2),
                   ),
