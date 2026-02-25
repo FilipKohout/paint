@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:paint/interfaces/renderable.dart';
@@ -72,7 +73,7 @@ class LineMode implements Mode {
     if (isDrawing && line != null) {
       double dx = (line!.start.x - line!.end.x).toDouble();
       double dy = (line!.start.y - line!.end.y).toDouble();
-      double distance = math.sqrt(dx * dx + dy * dy);
+      double distance = sqrt(dx * dx + dy * dy);
 
       if (distance > 5) {
         isDrawing = false;

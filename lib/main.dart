@@ -215,12 +215,19 @@ import 'modes/lineMode.dart';
     }
 
     @override
+    void didUpdateWidget(oldWidget) {
+      super.didUpdateWidget(oldWidget);
+      _updateMode();
+    }
+
+    @override
     void initState() {
       super.initState();
       ServicesBinding.instance.keyboard.addHandler(_onKey);
 
       pixels = Uint8List(width * height * 4);
       _fillCanvasWhite();
+      _updateMode();
     }
 
     @override
