@@ -12,11 +12,13 @@ import 'package:paint/models/vector2.dart';
 import 'package:paint/modes/fillMode.dart';
 import 'package:paint/modes/polygonMode.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:paint/modes/selectNodeMode.dart';
 
 import 'models/color.dart';
 import 'models/line.dart';
 import 'modes/circleMode.dart';
 import 'modes/lineMode.dart';
+import 'modes/selectObjectMode.dart';
 
   void main() {
     runApp(const App());
@@ -259,8 +261,36 @@ import 'modes/lineMode.dart';
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         IconButton.filled(
+                          icon: const Icon(Icons.pan_tool, size: 20),
+                          tooltip: 'Select Object',
+                          isSelected: mode is SelectObjectMode,
+                          onPressed: () => setState(() => mode = SelectObjectMode()),
+                        ),
+                        const SizedBox(width: 5),
+                        IconButton.filled(
+                          icon: const Icon(Icons.pan_tool_alt, size: 20),
+                          tooltip: 'Select Node',
+                          isSelected: mode is SelectNodeMode,
+                          onPressed: () => setState(() => mode = SelectNodeMode()),
+                        ),
+                        const SizedBox(width: 5),
+                        IconButton.filled(
                           icon: const Icon(Icons.linear_scale, size: 20),
                           tooltip: 'Line',
+                          isSelected: mode is LineMode,
+                          onPressed: () => setState(() => mode = LineMode()),
+                        ),
+                        const SizedBox(width: 5),
+                        IconButton.filled(
+                          icon: const Icon(Icons.square_outlined, size: 20),
+                          tooltip: 'Square',
+                          isSelected: mode is LineMode,
+                          onPressed: () => setState(() => mode = LineMode()),
+                        ),
+                        const SizedBox(width: 5),
+                        IconButton.filled(
+                          icon: const Icon(Icons.rectangle_outlined, size: 20),
+                          tooltip: 'Rectangle',
                           isSelected: mode is LineMode,
                           onPressed: () => setState(() => mode = LineMode()),
                         ),
@@ -285,7 +315,7 @@ import 'modes/lineMode.dart';
                           isSelected: mode is FillMode,
                           onPressed: () => setState(() => mode = FillMode()),
                         ),
-                        const VerticalDivider(color: Colors.black54, thickness: 1, width: 20, indent: 10, endIndent: 10),
+                        const VerticalDivider(color: Colors.grey, thickness: 1, width: 20, indent: 10, endIndent: 10),
                         IconButton.filledTonal(
                           icon: const Icon(Icons.delete, size: 20),
                           tooltip: 'Clear',
@@ -356,11 +386,12 @@ import 'modes/lineMode.dart';
                       mode.update(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()));
                       _redrawCanvas();
                     },
+                    cursor: SystemMouseCursors.precise,
                     child: Container(
                       width: Config.width.toDouble(),
                       height: Config.height.toDouble(),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black, width: 2),
+                        boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 3)],
                       ),
                       child: renderImage == null
                           ? const Center(child: CircularProgressIndicator())
