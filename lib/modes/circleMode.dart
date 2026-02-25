@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:paint/interfaces/renderable.dart';
 import 'package:paint/models/circle.dart';
+import 'package:paint/models/pixel.dart';
 import 'package:paint/models/polygon.dart';
 import 'package:paint/models/vector2.dart';
 
@@ -31,7 +32,7 @@ class CircleMode implements Mode {
   }
 
   @override
-  Renderable? start(Vector2 pos) {
+  Renderable? start(Vector2 pos, List<Pixel> pixels) {
     if (!isDrawing) {
       circle = Circle(pos, pos, color, thickness: thickness, style: style);
       isDrawing = true;

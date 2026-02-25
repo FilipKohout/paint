@@ -8,6 +8,7 @@ import 'package:paint/models/vector2.dart';
 import '../interfaces/mode.dart';
 import '../models/color.dart';
 import '../models/line.dart';
+import '../models/pixel.dart';
 
 class LineMode implements Mode {
   @override
@@ -53,7 +54,7 @@ class LineMode implements Mode {
   }
 
   @override
-  Renderable? start(Vector2 pos) {
+  Renderable? start(Vector2 pos, List<Pixel> pixels) {
     if (!isDrawing) {
       line = Line(pos, pos, color, thickness: thickness, style: style);
       isDrawing = true;

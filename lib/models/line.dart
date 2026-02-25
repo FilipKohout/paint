@@ -41,7 +41,7 @@ class Line implements Renderable {
 
       for (int y = p1.y; y <= p2.y; y++) {
         for (int i = 0; i < thickness; i++) {
-          if (_canDraw(y - p1.y)) { pixels.add(Pixel(Vector2(start.x + i, y), color)); }
+          if (_canDraw(y - p1.y)) pixels.add(Pixel(Vector2(start.x + i, y), color));
         }
       }
       return pixels;
@@ -58,7 +58,7 @@ class Line implements Renderable {
         double y = a * x + b;
 
         for (int i = 0; i < thickness; i++) {
-          if (_canDraw(x - p1.x)) { pixels.add(Pixel(Vector2(x, y.toInt() + i), color)); }
+          if (_canDraw(x - p1.x)) pixels.add(Pixel(Vector2(x, y.toInt() + i), color));
         }
       }
     } else {
@@ -69,7 +69,7 @@ class Line implements Renderable {
         double x = (y - b) / a;
 
         for (int i = 0; i < thickness; i++) {
-          if (_canDraw(y - p1.y)) { pixels.add(Pixel(Vector2(x.toInt() + i, y), color)); }
+          if (_canDraw(y - p1.y)) pixels.add(Pixel(Vector2(x.toInt() + i, y), color));
         }
       }
     }

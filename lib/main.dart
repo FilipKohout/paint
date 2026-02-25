@@ -3,10 +3,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:paint/config.dart';
 import 'package:paint/interfaces/mode.dart';
 import 'package:paint/interfaces/renderable.dart';
+import 'package:paint/models/fill.dart';
 import 'package:paint/models/pixel.dart';
 import 'package:paint/models/vector2.dart';
+import 'package:paint/modes/fillMode.dart';
 import 'package:paint/modes/polygonMode.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
@@ -44,11 +47,9 @@ import 'modes/lineMode.dart';
   }
 
   class _MainPageState extends State<MainPage> {
-    final int width = 800;
-    final int height = 600;
-
     late Uint8List pixels;
     late List<Renderable> objects = [];
+    late List<Pixel> usedPixels = [];
     late Mode mode = LineMode();
 
     ui.Image? renderImage;
@@ -63,7 +64,7 @@ import 'modes/lineMode.dart';
     }
 
     Future<void> updateCanvas() async {
-      ui.decodeImageFromPixels(pixels, width, height, ui.PixelFormat.rgba8888, (ui.Image img) {
+      ui.decodeImageFromPixels(pixels, Config.width, Config.height, ui.PixelFormat.rgba8888, (ui.Image img) {
         setState(() {
           renderImage = img;
         });
@@ -178,6 +179,8 @@ import 'modes/lineMode.dart';
         pixels[i + 2] = 255; // B
         pixels[i + 3] = 255; // Alpha
       }
+
+      usedPixels = [];
     }
 
     void _redrawCanvas() {
@@ -193,8 +196,10 @@ import 'modes/lineMode.dart';
     }
 
     void _setPixel(Pixel p) {
-      if (p.position.x >= 0 && p.position.x < width && p.position.y >= 0 && p.position.y < height) {
-        int index = (p.position.y * width + p.position.x) * 4;
+      if (p.position.x >= 0 && p.position.x < Config.width && p.position.y >= 0 && p.position.y < Config.height) {
+        usedPixels.add(p);
+
+        int index = (p.position.y * Config.width + p.position.x) * 4;
         pixels[index] = p.color.r.toInt();
         pixels[index + 1] = p.color.g.toInt();
         pixels[index + 2] = p.color.b.toInt();
@@ -215,8 +220,8 @@ import 'modes/lineMode.dart';
     }
 
     @override
-    void didUpdateWidget(oldWidget) {
-      super.didUpdateWidget(oldWidget);
+    void setState(VoidCallback fn) {
+      super.setState(fn);
       _updateMode();
     }
 
@@ -225,7 +230,8 @@ import 'modes/lineMode.dart';
       super.initState();
       ServicesBinding.instance.keyboard.addHandler(_onKey);
 
-      pixels = Uint8List(width * height * 4);
+      pixels = Uint8List(Config.width * Config.height * 4);
+
       _fillCanvasWhite();
       _updateMode();
     }
@@ -271,6 +277,13 @@ import 'modes/lineMode.dart';
                           tooltip: 'Circle',
                           isSelected: mode is CircleMode,
                           onPressed: () => setState(() => mode = CircleMode()),
+                        ),
+                        const SizedBox(width: 5),
+                        IconButton.filled(
+                          icon: const Icon(Icons.format_color_fill, size: 20),
+                          tooltip: 'Fill',
+                          isSelected: mode is FillMode,
+                          onPressed: () => setState(() => mode = FillMode()),
                         ),
                         const VerticalDivider(color: Colors.black54, thickness: 1, width: 20, indent: 10, endIndent: 10),
                         IconButton.filledTonal(
@@ -318,7 +331,7 @@ import 'modes/lineMode.dart';
               child: Center(
                 child: GestureDetector(
                   onPanDown: (data) {
-                    Renderable? obj = mode.start(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()));
+                    Renderable? obj = mode.start(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()), usedPixels);
 
                     if (obj != null) {
                       objects.add(obj);
@@ -344,8 +357,8 @@ import 'modes/lineMode.dart';
                       _redrawCanvas();
                     },
                     child: Container(
-                      width: width.toDouble(),
-                      height: height.toDouble(),
+                      width: Config.width.toDouble(),
+                      height: Config.height.toDouble(),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.black, width: 2),
                       ),
