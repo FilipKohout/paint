@@ -3,7 +3,7 @@ import 'package:paint/models/vector2.dart';
 
 class Pixel {
   final Vector2 position;
-  final RGB color;
+  final RGBA color;
 
   Pixel(this.position, this.color);
 }

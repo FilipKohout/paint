@@ -7,7 +7,7 @@ import '../interfaces/mode.dart';
 import '../models/color.dart';
 import '../models/line.dart';
 
-class PolygonMode implements Mode {
+class CircleMode implements Mode {
   @override
   late RGBA color;
 

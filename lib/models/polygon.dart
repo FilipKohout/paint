@@ -8,10 +8,11 @@ import 'color.dart';
 class Polygon implements Renderable {
   List<Vector2> _points = [];
   List<Line> _lines = [];
-  RGB color;
+  RGBA color;
   LineStyle style = LineStyle.solid;
+  int thickness = 1;
 
-  Polygon(Vector2 start, this.color, this.style) {
+  Polygon(Vector2 start, this.color, {this.thickness = 1, this.style = LineStyle.solid}) {
     addPoint(start);
   }
 
@@ -31,10 +32,10 @@ class Polygon implements Renderable {
     _lines = [];
 
     for (int i = 0; i < _points.length - 1; i++) {
-      _lines.add(Line(_points[i], _points[i + 1], color, style));
+      _lines.add(Line(_points[i], _points[i + 1], color, style: style, thickness: thickness));
     }
 
-    _lines.add(Line(_points.last, _points.first, color, style));
+    _lines.add(Line(_points.last, _points.first, color, style: style, thickness: thickness));
   }
 
   void updateLastPoint(Vector2 point) {

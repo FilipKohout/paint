@@ -10,10 +10,11 @@ enum LineStyle { solid, dashed, dotted }
 class Line implements Renderable {
   Vector2 start;
   Vector2 end;
-  RGB color;
+  RGBA color;
   LineStyle style;
+  int thickness;
 
-  Line(this.start, this.end, this.color, this.style);
+  Line(this.start, this.end, this.color, {this.style = LineStyle.solid, this.thickness = 5});
 
   bool _canDraw(int index) {
     switch(style) {
@@ -39,7 +40,9 @@ class Line implements Renderable {
       Vector2 p2 = start.y < end.y ? end : start;
 
       for (int y = p1.y; y <= p2.y; y++) {
-        if (_canDraw(y - p1.y)) { pixels.add(Pixel(Vector2(start.x, y), color)); }
+        for (int i = 0; i < thickness; i++) {
+          if (_canDraw(y - p1.y)) { pixels.add(Pixel(Vector2(start.x + i, y), color)); }
+        }
       }
       return pixels;
     }
@@ -54,8 +57,8 @@ class Line implements Renderable {
       for (int x = p1.x; x <= p2.x; x++) {
         double y = a * x + b;
 
-        if (_canDraw(x - p1.x)) {
-          pixels.add(Pixel(Vector2(x, y.toInt()), color));
+        for (int i = 0; i < thickness; i++) {
+          if (_canDraw(x - p1.x)) { pixels.add(Pixel(Vector2(x, y.toInt() + i), color)); }
         }
       }
     } else {
@@ -65,8 +68,8 @@ class Line implements Renderable {
       for (int y = p1.y; y <= p2.y; y++) {
         double x = (y - b) / a;
 
-        if (_canDraw(y - p1.y)) {
-          pixels.add(Pixel(Vector2(x.toInt(), y), color));
+        for (int i = 0; i < thickness; i++) {
+          if (_canDraw(y - p1.y)) { pixels.add(Pixel(Vector2(x.toInt() + i, y), color)); }
         }
       }
     }

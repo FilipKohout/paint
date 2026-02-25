@@ -9,6 +9,15 @@ import '../models/color.dart';
 import '../models/line.dart';
 
 class LineMode implements Mode {
+  @override
+  late RGBA color;
+
+  @override
+  late int thickness;
+
+  @override
+  late LineStyle style;
+
   Line? line;
   bool isDrawing = false;
   bool snap = false;
@@ -45,7 +54,7 @@ class LineMode implements Mode {
   @override
   Renderable? start(Vector2 pos) {
     if (!isDrawing) {
-      line = Line(pos, pos, RGB(0, 0, 0), LineStyle.solid);
+      line = Line(pos, pos, color, thickness: thickness, style: style);
       isDrawing = true;
 
       return line;

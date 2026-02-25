@@ -1,7 +1,8 @@
-class RGB {
-  final int r;
-  final int g;
-  final int b;
+class RGBA {
+  final double r;
+  final double g;
+  final double b;
+  final double a;
 
-  RGB(this.r, this.g, this.b);
+  RGBA(this.r, this.g, this.b, this.a);
 }
