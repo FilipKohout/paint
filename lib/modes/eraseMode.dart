@@ -39,31 +39,35 @@ class EraseMode implements Mode {
     eraser!.start = pos;
     eraser!.end = pos + Vector2(thickness, thickness);
 
-    if (isErasing) {
-      for (Renderable obj in linkedPixels.keys) {
-        if (obj.foregroundOnly || obj.deleted) continue;
+    if (!isErasing) return;
 
-        var pixels = linkedPixels[obj]!;
-        var toRemove = <Pixel>[];
-        bool modified = false;
+    int thickSq = thickness * thickness;
 
-        for (Pixel pixel in pixels) {
-          if ((pixel.position - pos).magnitude < thickness) {
-            toRemove.add(pixel);
-            modified = true;
-          }
-        }
+    for (Renderable obj in linkedPixels.keys.toList()) {
+      if (obj.foregroundOnly || obj.deleted) continue;
 
-        for (Pixel pixel in toRemove) {
-          pixels.remove(pixel);
-        }
+      var pixels = linkedPixels[obj]!;
+      int initialCount = pixels.length;
 
-        if (modified && obj is! PixelGroup) {
+      pixels.removeWhere((pixel) {
+        int dx = pixel.position.x - pos.x;
+        int dy = pixel.position.y - pos.y;
+        return (dx * dx + dy * dy) <= thickSq;
+      });
+
+      bool modified = pixels.length < initialCount;
+
+      if (modified) {
+        if (obj is PixelGroup) obj.pixels = pixels;
+        else {
           savedObjects.remove(obj);
           obj.deleted = true;
-          savedObjects.add(PixelGroup(pixels, obj.color));
-        } else if (modified) {
-          (obj as PixelGroup).pixels = pixels;
+
+          var newGroup = PixelGroup(pixels, obj.color);
+          savedObjects.add(newGroup);
+
+          linkedPixels.remove(obj);
+          linkedPixels[newGroup] = pixels;
         }
       }
     }
@@ -78,6 +82,8 @@ class EraseMode implements Mode {
 
     savedObjects = objects;
     isErasing = true;
+    update(pos);
+
     return eraser;
   }
 
