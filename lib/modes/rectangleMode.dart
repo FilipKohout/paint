@@ -34,7 +34,7 @@ class RectangleMode implements Mode {
   }
 
   @override
-  Renderable? start(Vector2 pos, List<Pixel> pixels) {
+  Renderable? start(Vector2 pos, List<Pixel> pixels, List<Renderable> objects) {
     if (!isDrawing) {
       rectangle = Rectangle(pos, pos, color, thickness: thickness, style: style);
       isDrawing = true;

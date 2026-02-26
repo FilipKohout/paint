@@ -16,6 +16,8 @@ import '../models/line.dart';
 class SquareMode extends RectangleMode {
   @override
   void update(Vector2 pos) {
+    if (rectangle == null) return;
+
     Vector2 start = rectangle!.start;
     int dx = pos.x - start.x;
     int dy = pos.y - start.y;

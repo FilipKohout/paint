@@ -8,9 +8,26 @@ import 'color.dart';
 class Polygon implements Renderable {
   List<Vector2> _points = [];
   List<Line> _lines = [];
-  RGBA color;
   LineStyle style = LineStyle.solid;
   int thickness = 1;
+
+  @override
+  RGBA color;
+
+  @override
+  bool foregroundOnly = false;
+
+  @override
+  Vector2 get maxPosition => Vector2(
+    _points.map((point) => point.x).reduce((a, b) => a > b ? a : b),
+    _points.map((point) => point.y).reduce((a, b) => a > b ? a : b),
+  );
+
+  @override
+  Vector2 get minPosition => Vector2(
+    _points.map((point) => point.x).reduce((a, b) => a < b ? a : b),
+    _points.map((point) => point.y).reduce((a, b) => a < b ? a : b),
+  );
 
   Polygon(Vector2 start, this.color, {this.thickness = 1, this.style = LineStyle.solid}) {
     addPoint(start);
@@ -45,11 +62,20 @@ class Polygon implements Renderable {
     }
   }
 
+  @override
   List<Pixel> pixelate() {
     List<Pixel> pixels = [];
     for (Line line in _lines) {
       pixels.addAll(line.pixelate());
     }
     return pixels;
+  }
+
+  @override
+  void move(Vector2 delta) {
+    for (int i = 0; i < _points.length; i++) {
+      _points[i] = _points[i] + delta;
+    }
+    _refreshLines();
   }
 }

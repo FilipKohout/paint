@@ -28,7 +28,7 @@ class PolygonMode implements Mode {
   }
 
   @override
-  Renderable? start(Vector2 pos, List<Pixel> pixels) {
+  Renderable? start(Vector2 pos, List<Pixel> pixels, List<Renderable> objects) {
     if (polygon != null) return null;
 
     polygon = Polygon(pos, color, thickness: thickness, style: style);

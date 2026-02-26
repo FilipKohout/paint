@@ -1,3 +1,6 @@
+
+import 'dart:math';
+
 import 'package:paint/config.dart';
 import 'package:paint/interfaces/renderable.dart';
 import 'package:paint/models/pixel.dart';
@@ -7,9 +10,30 @@ import 'color.dart';
 
 class Fill implements Renderable {
   Vector2 position;
-  RGBA color;
   List<Pixel> allPixels = [];
   List<Pixel> filledPixels = [];
+
+  @override
+  RGBA color;
+
+  @override
+  bool foregroundOnly = false;
+
+  @override
+  Vector2 get maxPosition {
+    if (filledPixels.isEmpty) return position;
+    int x = filledPixels.map((p) => p.position.x).reduce(max);
+    int y = filledPixels.map((p) => p.position.y).reduce(max);
+    return Vector2(x, y);
+  }
+
+  @override
+  Vector2 get minPosition {
+    if (filledPixels.isEmpty) return position;
+    int x = filledPixels.map((p) => p.position.x).reduce(min);
+    int y = filledPixels.map((p) => p.position.y).reduce(min);
+    return Vector2(x, y);
+  }
 
   Fill(this.position, this.color, this.allPixels);
 
@@ -21,7 +45,7 @@ class Fill implements Renderable {
 
       List<bool> isObstacle = List.filled(width * height, false);
       for (Pixel p in allPixels) {
-        if (!p.isFilled && p.position.x >= 0 && p.position.x < width && p.position.y >= 0 && p.position.y < height) {
+        if (!p.isFilled && p.color.a != 0 && p.position.x >= 0 && p.position.x < width && p.position.y >= 0 && p.position.y < height) {
           isObstacle[p.position.y * width + p.position.x] = true;
         }
       }
@@ -52,5 +76,12 @@ class Fill implements Renderable {
     }
 
     return filledPixels;
+  }
+
+  @override
+  void move(Vector2 delta) {
+    for (Pixel p in filledPixels) {
+      p.position += delta;
+    }
   }
 }

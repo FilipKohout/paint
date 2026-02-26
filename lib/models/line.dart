@@ -10,9 +10,20 @@ enum LineStyle { solid, dashed, dotted }
 class Line implements Renderable {
   Vector2 start;
   Vector2 end;
-  RGBA color;
   LineStyle style;
   int thickness;
+
+  @override
+  RGBA color;
+
+  @override
+  bool foregroundOnly = false;
+
+  @override
+  Vector2 get maxPosition => start;
+
+  @override
+  Vector2 get minPosition => end;
 
   Line(this.start, this.end, this.color, {this.style = LineStyle.solid, this.thickness = 5});
 
@@ -27,6 +38,7 @@ class Line implements Renderable {
     }
   }
 
+  @override
   List<Pixel> pixelate() {
     List<Pixel> pixels = [];
 
@@ -75,5 +87,11 @@ class Line implements Renderable {
     }
 
     return pixels;
+  }
+
+  @override
+  void move(Vector2 delta) {
+    start += delta;
+    end += delta;
   }
 }

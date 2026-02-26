@@ -11,7 +11,7 @@ abstract class Mode {
   late int thickness;
   late LineStyle style;
 
-  Renderable? start(Vector2 pos, List<Pixel> pixels);
+  Renderable? start(Vector2 pos, List<Pixel> pixels, List<Renderable> objects);
   void update(Vector2 pos);
   void end(Vector2 pos);
   void onKey(KeyEvent event);

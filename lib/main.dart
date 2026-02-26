@@ -197,21 +197,29 @@ import 'modes/squareMode.dart';
       usedPixels.clear();
 
       for (var object in objects) {
+        if (object.foregroundOnly) continue;
+
         for (Pixel p in object.pixelate()) {
           usedPixels.add(p);
           _setPixelTo(bgPixels, p);
         }
       }
       _updateImages();
+      _redrawActiveOnly();
     }
 
     void _redrawActiveOnly() {
       _clearFg();
 
       if (objects.isNotEmpty) {
-        var activeObject = objects.last;
-        for (Pixel p in activeObject.pixelate()) {
-          _setPixelTo(fgPixels, p);
+        var activeObj = objects.last;
+
+        for (Renderable obj in objects) {
+          if (obj == activeObj || obj.foregroundOnly) {
+            for (Pixel p in obj.pixelate()) {
+              _setPixelTo(fgPixels, p);
+            }
+          }
         }
       }
 
@@ -381,9 +389,9 @@ import 'modes/squareMode.dart';
               child: Center(
                 child: GestureDetector(
                   onPanDown: (data) {
-                    Renderable? obj = mode.start(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()), usedPixels);
+                    Renderable? obj = mode.start(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()), usedPixels, objects);
 
-                    if (obj != null) {
+                    if (obj != null && !objects.contains(obj)) {
                       objects.add(obj);
                     }
 

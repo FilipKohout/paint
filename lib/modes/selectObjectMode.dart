@@ -3,6 +3,8 @@ import 'package:paint/interfaces/renderable.dart';
 import 'package:paint/models/fill.dart';
 import 'package:paint/models/pixel.dart';
 import 'package:paint/models/polygon.dart';
+import 'package:paint/models/rectangle.dart';
+import 'package:paint/models/selectionBox.dart';
 import 'package:paint/models/vector2.dart';
 
 import '../interfaces/mode.dart';
@@ -19,21 +21,87 @@ class SelectObjectMode implements Mode {
   @override
   late LineStyle style;
 
-  @override
-  void update(Vector2 pos) {
+  Map<Renderable, List<Pixel>> linkedPixels = {};
+  Renderable? selectedObject;
+  SelectionBox? selectBox;
+
+  Vector2? lastMousePos;
+
+  Renderable? getObjectAtPosition(Vector2 pos) {
+    for (Renderable obj in linkedPixels.keys) {
+      var pixels = linkedPixels[obj]!;
+
+      for (Pixel pixel in pixels) {
+        if ((pixel.position - pos).magnitude < 1) {
+          return obj;
+        }
+      }
+    }
+    return null;
+  }
+
+  void _updateSelectionBox(Vector2 pos) {
+    if (selectBox == null) {
+      selectBox = SelectionBox(Vector2(-5, -5), Vector2(-5, -5), RGBA(0, 0, 0, 0));
+      selectBox!.foregroundOnly = true;
+    }
+
+    if (selectedObject == null) {
+      Renderable? detectedObject = getObjectAtPosition(pos);
+
+      if (detectedObject != null) {
+        selectBox!.start = detectedObject.minPosition;
+        selectBox!.end = detectedObject.maxPosition;
+        selectBox!.color = detectedObject.color.isDark ? RGBA(255, 0, 0, 100) : RGBA(0, 0, 0, 100);
+        selectBox!.updateLines();
+      } else {
+        selectBox!.color = RGBA(0, 0, 0, 0);
+        selectBox!.updateLines();
+      }
+    } else {
+      selectBox!.start = selectedObject!.minPosition;
+      selectBox!.end = selectedObject!.maxPosition;
+      selectBox!.color = selectedObject!.color.isDark ? RGBA(255, 0, 0, 200) : RGBA(0, 0, 0, 200);
+      selectBox!.updateLines();
+    }
   }
 
   @override
-  Renderable? start(Vector2 pos, List<Pixel> pixels) {
+  void update(Vector2 pos) {
+    if (selectedObject != null && lastMousePos != null) {
+      Vector2 delta = pos - lastMousePos!;
 
+      selectedObject!.move(delta);
+      lastMousePos = pos;
+    }
+
+    _updateSelectionBox(pos);
+  }
+
+  @override
+  Renderable? start(Vector2 pos, List<Pixel> pixels, List<Renderable> objects) {
+    linkedPixels = {};
+    for (Renderable obj in objects) {
+      linkedPixels[obj] = obj.pixelate();
+    }
+
+    Renderable? detectedObject = getObjectAtPosition(pos);
+    selectedObject = detectedObject;
+
+    if (selectedObject != null) selectedObject!.foregroundOnly = true;
+
+    _updateSelectionBox(pos);
+    lastMousePos = pos;
+
+    return selectBox;
   }
 
   @override
   void end(Vector2 pos) {
+    if (selectedObject != null) selectedObject!.foregroundOnly = false;
+    lastMousePos = null;
   }
 
   @override
-  void onKey(event) {
-
-  }
+  void onKey(event) {}
 }

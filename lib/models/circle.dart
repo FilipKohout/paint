@@ -11,9 +11,24 @@ import 'line.dart';
 class Circle implements Renderable {
   Vector2 start;
   Vector2 end;
-  RGBA color;
   LineStyle style;
   int thickness;
+
+  @override
+  RGBA color;
+
+  @override
+  bool foregroundOnly = false;
+
+  double get dx => (end.x - start.x).toDouble();
+  double get dy => (end.y - start.y).toDouble();
+  int get radius => sqrt(dx * dx + dy * dy).round();
+
+  @override
+  Vector2 get maxPosition => Vector2(start.x - radius, start.y - radius);
+
+  @override
+  Vector2 get minPosition => Vector2(start.x + radius, start.y + radius);
 
   Circle(this.start, this.end, this.color, {this.style = LineStyle.solid, this.thickness = 5});
 
@@ -28,6 +43,7 @@ class Circle implements Renderable {
     }
   }
 
+  @override
   List<Pixel> pixelate() {
     List<Pixel> pixels = [];
 
@@ -35,10 +51,6 @@ class Circle implements Renderable {
       pixels.add(Pixel(start, color));
       return pixels;
     }
-
-    double dx = (end.x - start.x).toDouble();
-    double dy = (end.y - start.y).toDouble();
-    int radius = sqrt(dx * dx + dy * dy).round();
 
     int cx = start.x;
     int cy = start.y;
@@ -76,5 +88,11 @@ class Circle implements Renderable {
     }
 
     return pixels;
+  }
+
+  @override
+  void move(Vector2 delta) {
+    start += delta;
+    end += delta;
   }
 }
