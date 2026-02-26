@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:paint/config.dart';
 import 'package:paint/interfaces/mode.dart';
 import 'package:paint/interfaces/renderable.dart';
-import 'package:paint/models/fill.dart';
+import 'package:paint/models/eraser.dart';
 import 'package:paint/models/pixel.dart';
 import 'package:paint/models/selectionBox.dart';
 import 'package:paint/models/selectionPointsRender.dart';
@@ -188,15 +188,34 @@ import 'modes/squareMode.dart';
     void _setPixelTo(Uint8List targetPixels, Pixel p) {
       if (p.position.x >= 0 && p.position.x < Config.width && p.position.y >= 0 && p.position.y < Config.height) {
         int index = (p.position.y * Config.width + p.position.x) * 4;
-        targetPixels[index] = p.color.r.toInt();
-        targetPixels[index + 1] = p.color.g.toInt();
-        targetPixels[index + 2] = p.color.b.toInt();
+
+        int oldA = targetPixels[index + 3];
+        int newA = p.color.a.toInt();
+
+        targetPixels[index] = (p.color.r.toInt() * newA + targetPixels[index] * (255 - newA)) ~/ 255;
+        targetPixels[index + 1] = (p.color.g.toInt() * newA + targetPixels[index + 1] * (255 - newA)) ~/ 255;
+        targetPixels[index + 2] = (p.color.b.toInt() * newA + targetPixels[index + 2] * (255 - newA)) ~/ 255;
         targetPixels[index + 3] = p.color.a.toInt();
       }
     }
 
+    bool _checkDelete() {
+      List<Renderable> toRemove = [];
+
+       for (Renderable obj in objects) {
+        if (obj.deleted) toRemove.add(obj);
+      }
+
+      for (Renderable obj in toRemove) {
+        objects.remove(obj);
+      }
+
+      return toRemove.isNotEmpty;
+    }
+
     void _redrawAll() {
       _fillBgWhite();
+      _checkDelete();
       usedPixels.clear();
 
       for (var object in objects) {
@@ -215,6 +234,11 @@ import 'modes/squareMode.dart';
       _clearFg();
 
       if (objects.isNotEmpty) {
+        if (_checkDelete()) {
+          _redrawAll();
+          return;
+        }
+
         var activeObj = objects.last;
 
         for (Renderable obj in objects) {
@@ -258,6 +282,12 @@ import 'modes/squareMode.dart';
       if (mode is! SelectNodeMode) {
         for (Renderable obj in objects) {
           if (obj is SelectionPointsRender) objects.remove(obj);
+        }
+      }
+
+      if (mode is! EraseMode) {
+        for (Renderable obj in objects) {
+          if (obj is Eraser) objects.remove(obj);
         }
       }
     }
@@ -375,7 +405,14 @@ import 'modes/squareMode.dart';
                           icon: const Icon(Icons.cleaning_services_rounded, size: 20),
                           tooltip: 'Erase',
                           isSelected: mode is EraseMode,
-                          onPressed: () => setState(() => mode = EraseMode()),
+                          onPressed: () => setState(() {
+                            mode = EraseMode();
+                            Renderable? box = mode.start(Vector2(-50, -50), usedPixels, objects);
+                            mode.end(Vector2(-50, -50));
+
+                            if (box != null) objects.add(box);
+                            _redrawActiveOnly();
+                          }),
                         ),
                         const VerticalDivider(color: Colors.grey, thickness: 1, width: 20, indent: 10, endIndent: 10),
                         IconButton.filledTonal(

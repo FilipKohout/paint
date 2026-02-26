@@ -102,5 +102,18 @@ class SelectObjectMode implements Mode {
   }
 
   @override
-  void onKey(event) {}
+  void onKey(event) {
+    if (selectedObject == null) return;
+
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.delete:
+        selectedObject!.deleted = true;
+        linkedPixels[selectedObject!] = [];
+
+        selectedObject = null;
+        _updateSelectionBox(Vector2(-50, -50));
+
+        break;
+    }
+  }
 }
