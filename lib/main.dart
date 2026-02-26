@@ -18,7 +18,9 @@ import 'models/color.dart';
 import 'models/line.dart';
 import 'modes/circleMode.dart';
 import 'modes/lineMode.dart';
+import 'modes/rectangleMode.dart';
 import 'modes/selectObjectMode.dart';
+import 'modes/squareMode.dart';
 
   void main() {
     runApp(const App());
@@ -49,12 +51,14 @@ import 'modes/selectObjectMode.dart';
   }
 
   class _MainPageState extends State<MainPage> {
-    late Uint8List pixels;
+    late Uint8List bgPixels;
+    late Uint8List fgPixels;
     late List<Renderable> objects = [];
     late List<Pixel> usedPixels = [];
     late Mode mode = LineMode();
 
-    ui.Image? renderImage;
+    ui.Image? bgImage;
+    ui.Image? fgImage;
 
     Color pickerColor = const Color(0xff000000);
     Color currentColor = const Color(0xff000000);
@@ -63,14 +67,6 @@ import 'modes/selectObjectMode.dart';
 
     void changeColor(Color color) {
       setState(() => pickerColor = color);
-    }
-
-    Future<void> updateCanvas() async {
-      ui.decodeImageFromPixels(pixels, Config.width, Config.height, ui.PixelFormat.rgba8888, (ui.Image img) {
-        setState(() {
-          renderImage = img;
-        });
-      });
     }
 
     void _openColorPicker() {
@@ -174,44 +170,66 @@ import 'modes/selectObjectMode.dart';
       );
     }
 
-    void _fillCanvasWhite() {
-      for (int i = 0; i < pixels.length; i += 4) {
-        pixels[i] = 255;     // R
-        pixels[i + 1] = 255; // G
-        pixels[i + 2] = 255; // B
-        pixels[i + 3] = 255; // Alpha
+    void _fillBgWhite() {
+      for (int i = 0; i < bgPixels.length; i += 4) {
+        bgPixels[i] = 255; bgPixels[i + 1] = 255; bgPixels[i + 2] = 255; bgPixels[i + 3] = 255;
       }
-
-      usedPixels = [];
     }
 
-    void _redrawCanvas() {
-      _fillCanvasWhite();
+    void _clearFg() {
+      for (int i = 0; i < fgPixels.length; i += 4) {
+        fgPixels[i] = 0; fgPixels[i + 1] = 0; fgPixels[i + 2] = 0; fgPixels[i + 3] = 0;
+      }
+    }
+
+    void _setPixelTo(Uint8List targetPixels, Pixel p) {
+      if (p.position.x >= 0 && p.position.x < Config.width && p.position.y >= 0 && p.position.y < Config.height) {
+        int index = (p.position.y * Config.width + p.position.x) * 4;
+        targetPixels[index] = p.color.r.toInt();
+        targetPixels[index + 1] = p.color.g.toInt();
+        targetPixels[index + 2] = p.color.b.toInt();
+        targetPixels[index + 3] = p.color.a.toInt();
+      }
+    }
+
+    void _redrawAll() {
+      _fillBgWhite();
+      usedPixels.clear();
 
       for (var object in objects) {
         for (Pixel p in object.pixelate()) {
-          _setPixel(p);
+          usedPixels.add(p);
+          _setPixelTo(bgPixels, p);
+        }
+      }
+      _updateImages();
+    }
+
+    void _redrawActiveOnly() {
+      _clearFg();
+
+      if (objects.isNotEmpty) {
+        var activeObject = objects.last;
+        for (Pixel p in activeObject.pixelate()) {
+          _setPixelTo(fgPixels, p);
         }
       }
 
-      updateCanvas();
+      _updateImages();
     }
 
-    void _setPixel(Pixel p) {
-      if (p.position.x >= 0 && p.position.x < Config.width && p.position.y >= 0 && p.position.y < Config.height) {
-        usedPixels.add(p);
-
-        int index = (p.position.y * Config.width + p.position.x) * 4;
-        pixels[index] = p.color.r.toInt();
-        pixels[index + 1] = p.color.g.toInt();
-        pixels[index + 2] = p.color.b.toInt();
-        pixels[index + 3] = p.color.a.toInt();
-      }
+    Future<void> _updateImages() async {
+      ui.decodeImageFromPixels(bgPixels, Config.width, Config.height, ui.PixelFormat.rgba8888, (img) {
+        setState(() => bgImage = img);
+      });
+      ui.decodeImageFromPixels(fgPixels, Config.width, Config.height, ui.PixelFormat.rgba8888, (img) {
+        setState(() => fgImage = img);
+      });
     }
 
     bool _onKey(KeyEvent event) {
       mode.onKey(event);
-      _redrawCanvas();
+      _redrawActiveOnly();
       return true;
     }
 
@@ -232,9 +250,11 @@ import 'modes/selectObjectMode.dart';
       super.initState();
       ServicesBinding.instance.keyboard.addHandler(_onKey);
 
-      pixels = Uint8List(Config.width * Config.height * 4);
+      bgPixels = Uint8List(Config.width * Config.height * 4);
+      fgPixels = Uint8List(Config.width * Config.height * 4);
 
-      _fillCanvasWhite();
+      _fillBgWhite();
+      _clearFg();
       _updateMode();
     }
 
@@ -284,15 +304,15 @@ import 'modes/selectObjectMode.dart';
                         IconButton.filled(
                           icon: const Icon(Icons.square_outlined, size: 20),
                           tooltip: 'Square',
-                          isSelected: mode is LineMode,
-                          onPressed: () => setState(() => mode = LineMode()),
+                          isSelected: mode is SquareMode,
+                          onPressed: () => setState(() => mode = SquareMode()),
                         ),
                         const SizedBox(width: 5),
                         IconButton.filled(
                           icon: const Icon(Icons.rectangle_outlined, size: 20),
                           tooltip: 'Rectangle',
-                          isSelected: mode is LineMode,
-                          onPressed: () => setState(() => mode = LineMode()),
+                          isSelected: mode is RectangleMode && mode is! SquareMode,
+                          onPressed: () => setState(() => mode = RectangleMode()),
                         ),
                         const SizedBox(width: 5),
                         IconButton.filled(
@@ -322,8 +342,8 @@ import 'modes/selectObjectMode.dart';
                           onPressed: () {
                             setState(() {
                               objects.clear();
-                              _fillCanvasWhite();
-                              updateCanvas();
+                              _redrawAll();
+                              mode = SelectObjectMode();
                             });
                           },
                         ),
@@ -367,24 +387,24 @@ import 'modes/selectObjectMode.dart';
                       objects.add(obj);
                     }
 
-                    _redrawCanvas();
+                    _redrawActiveOnly();
                   },
                   onPanUpdate: (data) {
                     mode.update(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()));
-                    _redrawCanvas();
+                    _redrawActiveOnly();
                   },
                   onPanEnd: (data) {
                     mode.end(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()));
-                    _redrawCanvas();
+                    _redrawAll();
                   },
                   onTapUp: (data) {
                     mode.end(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()));
-                    _redrawCanvas();
+                    _redrawAll();
                   },
                   child: MouseRegion(
                     onHover: (data) {
                       mode.update(Vector2(data.localPosition.dx.toInt(), data.localPosition.dy.toInt()));
-                      _redrawCanvas();
+                      _redrawActiveOnly();
                     },
                     cursor: SystemMouseCursors.precise,
                     child: Container(
@@ -393,9 +413,14 @@ import 'modes/selectObjectMode.dart';
                       decoration: BoxDecoration(
                         boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 3)],
                       ),
-                      child: renderImage == null
-                          ? const Center(child: CircularProgressIndicator())
-                          : RawImage(image: renderImage),
+                      child: Stack(
+                        children: [
+                          if (bgImage != null)
+                            RawImage(image: bgImage),
+                          if (fgImage != null)
+                            RawImage(image: fgImage),
+                        ],
+                      ),
                     )
                   ),
                 ),
