@@ -29,7 +29,7 @@ class RectangleMode implements Mode {
   void update(Vector2 pos) {
     if (isDrawing && rectangle != null) {
       rectangle!.end = pos;
-      rectangle!.updateLines();
+      rectangle!.recalculate();
     }
   }
 

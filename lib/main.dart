@@ -8,6 +8,8 @@ import 'package:paint/interfaces/mode.dart';
 import 'package:paint/interfaces/renderable.dart';
 import 'package:paint/models/fill.dart';
 import 'package:paint/models/pixel.dart';
+import 'package:paint/models/selectionBox.dart';
+import 'package:paint/models/selectionPointsRender.dart';
 import 'package:paint/models/vector2.dart';
 import 'package:paint/modes/fillMode.dart';
 import 'package:paint/modes/polygonMode.dart';
@@ -245,6 +247,18 @@ import 'modes/squareMode.dart';
       mode.color = RGBA(currentColor.r * 255, currentColor.g * 255, currentColor.b * 255, currentColor.a * 255);
       mode.thickness = currentThickness;
       mode.style = currentStyle;
+
+      if (mode is! SelectObjectMode) {
+        for (Renderable obj in objects) {
+          if (obj is SelectionBox) objects.remove(obj);
+        }
+      }
+
+      if (mode is! SelectNodeMode) {
+        for (Renderable obj in objects) {
+          if (obj is SelectionPointsRender) objects.remove(obj);
+        }
+      }
     }
 
     @override
@@ -292,14 +306,26 @@ import 'modes/squareMode.dart';
                           icon: const Icon(Icons.pan_tool, size: 20),
                           tooltip: 'Select Object',
                           isSelected: mode is SelectObjectMode,
-                          onPressed: () => setState(() => mode = SelectObjectMode()),
+                          onPressed: () => setState(() {
+                            mode = SelectObjectMode();
+                            Renderable? box = mode.start(Vector2(0, 0), usedPixels, objects);
+
+                            if (box != null) objects.add(box);
+                            _redrawActiveOnly();
+                          }),
                         ),
                         const SizedBox(width: 5),
                         IconButton.filled(
                           icon: const Icon(Icons.pan_tool_alt, size: 20),
                           tooltip: 'Select Node',
                           isSelected: mode is SelectNodeMode,
-                          onPressed: () => setState(() => mode = SelectNodeMode()),
+                          onPressed: () => setState(() {
+                            mode = SelectNodeMode();
+                            Renderable? box = mode.start(Vector2(0, 0), usedPixels, objects);
+
+                            if (box != null) objects.add(box);
+                            _redrawActiveOnly();
+                          }),
                         ),
                         const SizedBox(width: 5),
                         IconButton.filled(
@@ -352,6 +378,10 @@ import 'modes/squareMode.dart';
                               objects.clear();
                               _redrawAll();
                               mode = SelectObjectMode();
+
+                              Renderable? box = mode.start(Vector2(0, 0), usedPixels, objects);
+                              if (box != null) objects.add(box);
+                              _redrawActiveOnly();
                             });
                           },
                         ),

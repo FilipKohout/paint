@@ -2,7 +2,7 @@ import 'dart:ffi';
 import 'dart:math';
 
 class Vector2 {
-  final int x, y;
+  int x, y;
 
   Vector2(this.x, this.y);
 

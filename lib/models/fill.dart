@@ -14,6 +14,9 @@ class Fill implements Renderable {
   List<Pixel> filledPixels = [];
 
   @override
+  List<Vector2> get nodes => [];
+
+  @override
   RGBA color;
 
   @override
@@ -83,5 +86,10 @@ class Fill implements Renderable {
     for (Pixel p in filledPixels) {
       p.position += delta;
     }
+  }
+
+  @override
+  void recalculate() {
+
   }
 }

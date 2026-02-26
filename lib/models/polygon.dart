@@ -12,6 +12,9 @@ class Polygon implements Renderable {
   int thickness = 1;
 
   @override
+  List<Vector2> get nodes => _points;
+
+  @override
   RGBA color;
 
   @override
@@ -77,5 +80,10 @@ class Polygon implements Renderable {
       _points[i] = _points[i] + delta;
     }
     _refreshLines();
+  }
+
+  @override
+  void recalculate() {
+
   }
 }

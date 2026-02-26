@@ -8,7 +8,7 @@ class SelectionBox extends Rectangle {
   bool foregroundOnly = true;
 
   @override
-  int get thickness => 3;
+  int thickness = 3;
 
   @override
   LineStyle style = LineStyle.dashed;

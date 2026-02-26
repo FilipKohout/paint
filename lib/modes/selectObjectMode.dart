@@ -23,9 +23,13 @@ class SelectObjectMode implements Mode {
 
   Map<Renderable, List<Pixel>> linkedPixels = {};
   Renderable? selectedObject;
-  SelectionBox? selectBox;
-
   Vector2? lastMousePos;
+
+  late SelectionBox selectBox;
+
+  SelectObjectMode() {
+    selectBox = SelectionBox(Vector2(-5, -5), Vector2(-5, -5), RGBA(0, 0, 0, 0))..foregroundOnly = true;
+  }
 
   Renderable? getObjectAtPosition(Vector2 pos) {
     for (Renderable obj in linkedPixels.keys) {
@@ -41,28 +45,23 @@ class SelectObjectMode implements Mode {
   }
 
   void _updateSelectionBox(Vector2 pos) {
-    if (selectBox == null) {
-      selectBox = SelectionBox(Vector2(-5, -5), Vector2(-5, -5), RGBA(0, 0, 0, 0));
-      selectBox!.foregroundOnly = true;
-    }
-
     if (selectedObject == null) {
       Renderable? detectedObject = getObjectAtPosition(pos);
 
       if (detectedObject != null) {
-        selectBox!.start = detectedObject.minPosition;
-        selectBox!.end = detectedObject.maxPosition;
-        selectBox!.color = detectedObject.color.isDark ? RGBA(255, 0, 0, 100) : RGBA(0, 0, 0, 100);
-        selectBox!.updateLines();
+        selectBox.start = detectedObject.minPosition;
+        selectBox.end = detectedObject.maxPosition;
+        selectBox.color = detectedObject.color.isDark ? RGBA(255, 0, 0, 100) : RGBA(0, 0, 0, 100);
+        selectBox.recalculate();
       } else {
-        selectBox!.color = RGBA(0, 0, 0, 0);
-        selectBox!.updateLines();
+        selectBox.color = RGBA(0, 0, 0, 0);
+        selectBox.recalculate();
       }
     } else {
-      selectBox!.start = selectedObject!.minPosition;
-      selectBox!.end = selectedObject!.maxPosition;
-      selectBox!.color = selectedObject!.color.isDark ? RGBA(255, 0, 0, 200) : RGBA(0, 0, 0, 200);
-      selectBox!.updateLines();
+      selectBox.start = selectedObject!.minPosition;
+      selectBox.end = selectedObject!.maxPosition;
+      selectBox.color = selectedObject!.color.isDark ? RGBA(255, 0, 0, 200) : RGBA(0, 0, 0, 200);
+      selectBox.recalculate();
     }
   }
 

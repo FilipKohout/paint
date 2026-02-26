@@ -14,6 +14,9 @@ class Line implements Renderable {
   int thickness;
 
   @override
+  List<Vector2> get nodes => [start, end];
+
+  @override
   RGBA color;
 
   @override
@@ -93,5 +96,10 @@ class Line implements Renderable {
   void move(Vector2 delta) {
     start += delta;
     end += delta;
+  }
+
+  @override
+  void recalculate() {
+
   }
 }
