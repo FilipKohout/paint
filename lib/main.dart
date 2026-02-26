@@ -11,6 +11,7 @@ import 'package:paint/models/pixel.dart';
 import 'package:paint/models/selectionBox.dart';
 import 'package:paint/models/selectionPointsRender.dart';
 import 'package:paint/models/vector2.dart';
+import 'package:paint/modes/eraseMode.dart';
 import 'package:paint/modes/fillMode.dart';
 import 'package:paint/modes/polygonMode.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -368,6 +369,13 @@ import 'modes/squareMode.dart';
                           tooltip: 'Fill',
                           isSelected: mode is FillMode,
                           onPressed: () => setState(() => mode = FillMode()),
+                        ),
+                        const SizedBox(width: 5),
+                        IconButton.filled(
+                          icon: const Icon(Icons.cleaning_services_rounded, size: 20),
+                          tooltip: 'Erase',
+                          isSelected: mode is EraseMode,
+                          onPressed: () => setState(() => mode = EraseMode()),
                         ),
                         const VerticalDivider(color: Colors.grey, thickness: 1, width: 20, indent: 10, endIndent: 10),
                         IconButton.filledTonal(

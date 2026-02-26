@@ -6,6 +6,7 @@ import 'package:paint/models/color.dart';
 import 'package:paint/models/pixel.dart';
 import 'package:paint/models/vector2.dart';
 
+import 'fill.dart';
 import 'line.dart';
 
 class Circle implements Renderable {
@@ -22,6 +23,9 @@ class Circle implements Renderable {
 
   @override
   bool foregroundOnly = false;
+
+  @override
+  bool deleted = false;
 
   double get dx => (end.x - start.x).toDouble();
   double get dy => (end.y - start.y).toDouble();
@@ -57,36 +61,24 @@ class Circle implements Renderable {
 
     int cx = start.x;
     int cy = start.y;
+    int rOuter = radius;
+    int rInner = max(0, radius - thickness);
 
-    for (int t = 0; t < thickness; t++) {
-      int r = radius - t;
-      if (r < 0) break;
+    int rOuterSq = rOuter * rOuter;
+    int rInnerSq = rInner * rInner;
 
-      int x = r;
-      int y = 0;
-      int p = 1 - r;
-      int i = 0;
+    for (int y = 0; y <= rOuter; y++) {
+      int xOuter = sqrt(rOuterSq - y * y).round();
+      int xInner = (y < rInner) ? sqrt(rInnerSq - y * y).round() : 0;
 
-      while (x >= y) {
-        if (_canDraw(i)) {
-          pixels.add(Pixel(Vector2(cx + x, cy + y), color));
-          pixels.add(Pixel(Vector2(cx - x, cy + y), color));
-          pixels.add(Pixel(Vector2(cx + x, cy - y), color));
-          pixels.add(Pixel(Vector2(cx - x, cy - y), color));
-          pixels.add(Pixel(Vector2(cx + y, cy + x), color));
-          pixels.add(Pixel(Vector2(cx - y, cy + x), color));
-          pixels.add(Pixel(Vector2(cx + y, cy - x), color));
-          pixels.add(Pixel(Vector2(cx - y, cy - x), color));
-        }
+      for (int x = xInner; x <= xOuter; x++) {
+        if (!_canDraw(x + y)) continue;
 
-        i++;
-        y++;
-        if (p <= 0) {
-          p = p + 2 * y + 1;
-        } else {
-          x--;
-          p = p + 2 * y - 2 * x + 1;
-        }
+        pixels.add(Pixel(Vector2(cx + x, cy + y), color));
+
+        if (x != 0) pixels.add(Pixel(Vector2(cx - x, cy + y), color));
+        if (y != 0) pixels.add(Pixel(Vector2(cx + x, cy - y), color));
+        if (x != 0 && y != 0) pixels.add(Pixel(Vector2(cx - x, cy - y), color));
       }
     }
 

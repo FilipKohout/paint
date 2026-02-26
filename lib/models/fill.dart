@@ -23,6 +23,9 @@ class Fill implements Renderable {
   bool foregroundOnly = false;
 
   @override
+  bool deleted = false;
+
+  @override
   Vector2 get maxPosition {
     if (filledPixels.isEmpty) return position;
     int x = filledPixels.map((p) => p.position.x).reduce(max);

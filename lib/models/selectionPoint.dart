@@ -11,5 +11,5 @@ class SelectionPoint extends Circle {
   bool foregroundOnly = true;
 
   @override
-  int thickness = 5;
+  int thickness = 15;
 }

@@ -21,6 +21,9 @@ class Polygon implements Renderable {
   bool foregroundOnly = false;
 
   @override
+  bool deleted = false;
+
+  @override
   Vector2 get maxPosition => Vector2(
     _points.map((point) => point.x).reduce((a, b) => a > b ? a : b),
     _points.map((point) => point.y).reduce((a, b) => a > b ? a : b),

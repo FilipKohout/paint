@@ -4,6 +4,7 @@ import 'package:paint/models/vector2.dart';
 
 abstract class Renderable {
   bool foregroundOnly = false;
+  bool deleted = false;
   RGBA color = RGBA(0, 0, 0, 255);
 
   List<Vector2> get nodes => [];

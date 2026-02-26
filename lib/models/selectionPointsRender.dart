@@ -14,6 +14,9 @@ class SelectionPointsRender implements Renderable {
   bool foregroundOnly = true;
 
   @override
+  bool deleted = false;
+
+  @override
   RGBA color = RGBA(0, 0, 255, 255);
 
   @override

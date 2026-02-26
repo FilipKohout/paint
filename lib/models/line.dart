@@ -23,6 +23,9 @@ class Line implements Renderable {
   bool foregroundOnly = false;
 
   @override
+  bool deleted = false;
+
+  @override
   Vector2 get maxPosition => start;
 
   @override
