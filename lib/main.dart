@@ -407,6 +407,7 @@ import 'modes/squareMode.dart';
                           isSelected: mode is EraseMode,
                           onPressed: () => setState(() {
                             mode = EraseMode();
+                            _updateMode();
                             Renderable? box = mode.start(Vector2(-50, -50), usedPixels, objects);
                             mode.end(Vector2(-50, -50));
 

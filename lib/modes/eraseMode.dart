@@ -36,6 +36,8 @@ class EraseMode implements Mode {
 
   @override
   void update(Vector2 pos) {
+    if (eraser == null) return;
+
     eraser!.start = pos;
     eraser!.end = pos + Vector2(thickness, thickness);
 
